@@ -1,0 +1,24 @@
+name: Validate package
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Norm
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag=$(gh release view --repo normlanguage/Norm --json tagName --jq .tagName)
+          gh release download "$tag" --repo normlanguage/Norm --pattern '*linux-x64.tar.gz' --output /tmp/norm.tar.gz
+          mkdir -p "$RUNNER_TEMP/norm"
+          tar -xzf /tmp/norm.tar.gz -C "$RUNNER_TEMP/norm"
+          echo "$RUNNER_TEMP/norm" >> "$GITHUB_PATH"
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Validate module and Skill
+        run: norm docs . --output build/api --skill SKILL.md --strict
