@@ -1,6 +1,6 @@
 # agent Skill
 
-Use this skill to work with Norm module `agent` version 1. Use only declarations listed below.
+Use this skill to work with Norm module `agent` version 2. Use only declarations listed below.
 
 ## `agent`
 
@@ -593,4 +593,5 @@ The request timeout.
 
 
 Returns: `String`
+
 
