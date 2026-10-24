@@ -2,43 +2,27 @@ name: Validate package
 
 on:
   push:
-  pull_re
-quest:
+  pull_request:
 
 jobs:
   validate:
-    runs-on: ubuntu
--latest
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/chec
-kout@v4
+      - uses: actions/checkout@v4
       - name: Install Norm CLI
-      
-  shell: bash
-        run: |
-          mkdir 
--p .norm-dist
-          gh release download -
--repo normlanguage/Norm --pattern '*linux-x64
-.tar.gz' --dir .norm-dist
-          tar -xzf 
-.norm-dist/*.tar.gz -C .norm-dist
-          c
-li="$(find .norm-dist -type f -name norm -per
-m -111 | head -n 1)"
-          test -n "$cli"
-
-          echo "NORM_CLI=$PWD/$cli" >> "$GIT
-HUB_ENV"
-        env:
-          GH_TOKEN: ${{
- github.token }}
-      - name: Generate and v
-alidate Skill
         shell: bash
-        run
-: "mkdir -p build/api`n          "$NORM_CLI" 
-docs . --output build/api --skill SKILL.md --
-strict"
-
-
+        run: |
+          set -euo pipefail
+          mkdir -p .norm-dist
+          gh release download --repo normlanguage/Norm --pattern '*linux-x64.tar.gz' --dir .norm-dist
+          tar -xzf .norm-dist/*.tar.gz -C .norm-dist
+          cli="$(find .norm-dist -type f -name norm -perm -111 | head -n 1)"
+          test -n "$cli"
+          echo "NORM_CLI=$PWD/$cli" >> "$GITHUB_ENV"
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Generate and validate Skill
+        shell: bash
+        run: |
+          mkdir -p build/api
+          "$NORM_CLI" docs . --output build/api --skill SKILL.md --strict
