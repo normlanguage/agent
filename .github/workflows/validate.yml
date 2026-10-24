@@ -1,24 +1,44 @@
 name: Validate package
+
 on:
   push:
-  pull_request:
-permissions:
-  contents: read
+  pull_re
+quest:
+
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu
+-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Install Norm
-        shell: bash
+      - uses: actions/chec
+kout@v4
+      - name: Install Norm CLI
+      
+  shell: bash
         run: |
-          set -euo pipefail
-          tag=$(gh release view --repo normlanguage/Norm --json tagName --jq .tagName)
-          gh release download "$tag" --repo normlanguage/Norm --pattern '*linux-x64.tar.gz' --output /tmp/norm.tar.gz
-          mkdir -p "$RUNNER_TEMP/norm"
-          tar -xzf /tmp/norm.tar.gz -C "$RUNNER_TEMP/norm"
-          echo "$RUNNER_TEMP/norm" >> "$GITHUB_PATH"
+          mkdir 
+-p .norm-dist
+          gh release download -
+-repo normlanguage/Norm --pattern '*linux-x64
+.tar.gz' --dir .norm-dist
+          tar -xzf 
+.norm-dist/*.tar.gz -C .norm-dist
+          c
+li="$(find .norm-dist -type f -name norm -per
+m -111 | head -n 1)"
+          test -n "$cli"
+
+          echo "NORM_CLI=$PWD/$cli" >> "$GIT
+HUB_ENV"
         env:
-          GH_TOKEN: ${{ github.token }}
-      - name: Validate module and Skill
-        run: norm docs . --output build/api --skill SKILL.md --strict
+          GH_TOKEN: ${{
+ github.token }}
+      - name: Generate and v
+alidate Skill
+        shell: bash
+        run
+: "mkdir -p build/api`n          "$NORM_CLI" 
+docs . --output build/api --skill SKILL.md --
+strict"
+
+
