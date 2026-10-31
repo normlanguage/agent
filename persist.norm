@@ -24,7 +24,7 @@ public interface PersistProvider {
 @Document(description: "Appends UTF-8 JSON Lines to a generated file per session.")
 public class JsonPersist implements PersistProvider {
   private String directory
-  @Document(description: "Creates a JSON Lines provider.") JsonPersist(@Document(description: "Output directory, default logs.") String directory = "logs") {
+  @Document(description: "Creates a JSON Lines provider.") JsonPersist(@Document(description: "Output directory, default session.") String directory = "session") {
     this.directory = filenameUtilsConcat(arg0: workingDirectory().value, arg1: directory)!!
   }
 
@@ -40,7 +40,7 @@ public class JsonPersist implements PersistProvider {
 @Document(description: "Records ordered events in a generated SQLite database per conversation.")
 public class SqlitePersist implements PersistProvider {
   private String directory
-  @Document(description: "Creates a SQLite provider.") SqlitePersist(@Document(description: "Output directory, default logs.") String directory = "logs") {
+  @Document(description: "Creates a SQLite provider.") SqlitePersist(@Document(description: "Output directory, default session.") String directory = "session") {
     this.directory = filenameUtilsConcat(arg0: workingDirectory().value, arg1: directory)!!
   }
 
