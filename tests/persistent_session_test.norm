@@ -1,0 +1,17 @@
+package agent
+
+import agent.AgentSession
+import agent.JsonFileSessionStore
+import std.json.JsonValue
+import std.json.writeJson
+import std.testing.Test
+
+@Test(types: [JsonFileSessionStore.class])
+Void persistsConversation() {
+  String path = "build/test/session.json"
+  var store = JsonFileSessionStore(path: path)
+  store.save(value: JsonValue.Array(values: []))
+  AgentSession(store: store).addContext(text: "第一轮")
+  AgentSession(store: JsonFileSessionStore(path: path)).addContext(text: "第二轮")
+  require(condition: writeJson(value: store.load()) == "[{\"role\":\"user\",\"content\":\"第一轮\"},{\"role\":\"user\",\"content\":\"第二轮\"}]", message: "Restored both turns")
+}

@@ -1,6 +1,6 @@
 # agent Skill
 
-Use this skill to work with Norm module `agent` version 6. Use only declarations listed below.
+Use this skill to work with Norm module `agent` version 7. Use only declarations listed below.
 
 ## `agent`
 
@@ -111,7 +111,7 @@ class Agent
 Creates an Agent with tools, Skills, and model configuration.
 
 ```norm
-Agent(String apiKey, String model, String endpoint, String? instruction, List<Skill> skills, List<Function<?>> tools, Integer maximumRounds, Integer maximumOutputTokens, Function<List<Function<?>>()>? toolProvider, Function<ToolScope()>? beginToolScope, Function<String?()>? contextProvider, List<McpToolProvider> mcp, HeaderMap headers)
+Agent(String apiKey, String model, String endpoint, String? instruction, List<Skill> skills, List<Function<?>> tools, Integer maximumRounds, Integer maximumOutputTokens, Function<List<Function<?>>()>? toolProvider, Function<ToolScope()>? beginToolScope, Function<String?()>? contextProvider, List<McpToolProvider> mcp, HeaderMap headers, Boolean persistJson, String sessionPath)
 ```
 
 Parameters:
@@ -155,13 +155,19 @@ The MCP providers.
 - `headers`: `HeaderMap`
 Additional model HTTP headers forwarded to the protocol client.
 
+- `persistJson`: `Boolean`
+Persists the default chat session as UTF-8 JSON across calls and restarts.
+
+- `sessionPath`: `String`
+Session file used when persistJson is enabled. Use a separate path per conversation.
+
 
 #### `Agent`
 
 Creates an Agent with tools, Skills, and model configuration.
 
 ```norm
-Agent(String apiKey, String model, String endpoint, Array<String> headers, String? instruction, List<Skill> skills, List<Function<?>> tools, Integer maximumRounds, Integer maximumOutputTokens, Function<List<Function<?>>()>? toolProvider, Function<ToolScope()>? beginToolScope, Function<String?()>? contextProvider, List<McpToolProvider> mcp)
+Agent(String apiKey, String model, String endpoint, Array<String> headers, String? instruction, List<Skill> skills, List<Function<?>> tools, Integer maximumRounds, Integer maximumOutputTokens, Function<List<Function<?>>()>? toolProvider, Function<ToolScope()>? beginToolScope, Function<String?()>? contextProvider, List<McpToolProvider> mcp, Boolean persistJson, String sessionPath)
 ```
 
 Parameters:
@@ -204,6 +210,12 @@ The context provider.
 
 - `mcp`: `List<McpToolProvider>`
 The MCP providers.
+
+- `persistJson`: `Boolean`
+Persists the default chat session as UTF-8 JSON across calls and restarts.
+
+- `sessionPath`: `String`
+Session file used when persistJson is enabled. Use a separate path per conversation.
 
 
 #### `skill`
@@ -291,7 +303,7 @@ Returns: `Agent`
 Runs a multi-round model interaction and dispatches tools.
 
 ```norm
-Response chat(String input, Function<Void(String)>? onResponseStarted, Function<Void(String)>? onMessageStarted, Function<Void(String)>? onText, Function<Void(Message)>? onMessageCompleted, Function<Void(ToolCall)>? onToolCallReceived, Function<Void(ToolCall)>? onToolStarted, Function<Void(ToolResult)>? onToolCompleted, Function<Void(ToolFailure)>? onToolFailed, Function<Void(Response)>? onResponseCompleted, Function<Void(Exception)>? onFailed, Function<Void(String)>? onRunStarted, Function<Void(Response)>? onRunCompleted, Function<Void(GenerationEvent)>? onEvent, AgentSession session)
+Response chat(String input, Function<Void(String)>? onResponseStarted, Function<Void(String)>? onMessageStarted, Function<Void(String)>? onText, Function<Void(Message)>? onMessageCompleted, Function<Void(ToolCall)>? onToolCallReceived, Function<Void(ToolCall)>? onToolStarted, Function<Void(ToolResult)>? onToolCompleted, Function<Void(ToolFailure)>? onToolFailed, Function<Void(Response)>? onResponseCompleted, Function<Void(Exception)>? onFailed, Function<Void(String)>? onRunStarted, Function<Void(Response)>? onRunCompleted, Function<Void(GenerationEvent)>? onEvent, AgentSession? session)
 ```
 
 Parameters:
@@ -338,7 +350,7 @@ The run-complete callback.
 - `onEvent`: `Function<Void(GenerationEvent)>?`
 The event callback.
 
-- `session`: `AgentSession`
+- `session`: `AgentSession?`
 The session to use.
 
 
@@ -550,6 +562,59 @@ Parameters:
 
 - `value`: `JsonValue`
 The JSON state.
+
+
+Returns: `Void`
+
+### `JsonFileSessionStore`
+
+Stores one conversation in an atomically replaced UTF-8 JSON file. Use one writer per path.
+
+```norm
+class JsonFileSessionStore implements SessionStore
+```
+
+Related tests:
+
+- `agent::persistsConversation()` — persistsConversation
+  tests/persistent_session_test.api.json
+
+#### `JsonFileSessionStore`
+
+Opens a session file, starting an empty conversation if it does not exist.
+
+```norm
+JsonFileSessionStore(String path)
+```
+
+Parameters:
+
+- `path`: `String`
+The session file path.
+
+
+#### `load`
+
+Reads the saved conversation.
+
+```norm
+JsonValue load()
+```
+
+Returns: `JsonValue`
+
+#### `save`
+
+Atomically saves the complete conversation.
+
+```norm
+Void save(JsonValue value)
+```
+
+Parameters:
+
+- `value`: `JsonValue`
+The session state.
 
 
 Returns: `Void`

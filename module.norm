@@ -1,5 +1,5 @@
 Module module() {
-  return module(name: "agent", version: 6,
+  return module(name: "agent", version: 7,
     dependencies: [exportedDependency(repository: "github", name: "openai", version: 7)],
     exports: ["agent", "skill", "session", "mcp"])
 }
