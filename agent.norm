@@ -17,6 +17,8 @@ import openai.ToolResult
 import openai.ToolDefinition
 
 
+import std.time.systemClock
+import std.json.toJsonValue
 import std.http.HeaderMap
 import std.core.Exception
 import std.json.JsonValue
@@ -24,6 +26,18 @@ import std.json.writeJson
 
 @Document(description: "Public API declaration AgentSession.")
 public class AgentSession {
+  private String? identifier = null
+
+  @Document(description: "Returns the generated identifier shared by all persistence providers.")
+  public String id() {
+    String? current = identifier
+    if current != null { return current }
+    var instant = systemClock().now()
+    String value = "${instant.epochSecond()}-${instant.nanosecond()}"
+    identifier = value
+    return value
+  }
+
   private SessionStore store
 
   @Document(description: "Creates an Agent session.") AgentSession(@Document(description: "The session store.") SessionStore store = JsonSessionStore()) {
@@ -69,8 +83,82 @@ private Integer positiveRoundLimit(Integer maximumRounds) {
   return maximumRounds
 }
 
+private JsonValue logToolCall(ToolCall call) {
+  Map<String, JsonValue> fields = Map<>()
+  fields.put(key: "callId", value: JsonValue.String(value: call.callId))
+  fields.put(key: "name", value: JsonValue.String(value: call.name))
+  fields.put(key: "arguments", value: JsonValue.String(value: call.arguments))
+  return JsonValue.Object(fields: fields)
+}
+
+private JsonValue generationRecord(GenerationEvent event) {
+  Map<String, JsonValue> fields = Map<>()
+  String kind = switch event {
+    case RunStarted(String input) {
+      fields.put(key: "input", value: JsonValue.String(value: input))
+      break "run_started"
+    }
+    case ResponseStarted(String id) {
+      fields.put(key: "id", value: JsonValue.String(value: id))
+      break "response_started"
+    }
+    case MessageStarted(String id) {
+      fields.put(key: "id", value: JsonValue.String(value: id))
+      break "message_started"
+    }
+    case Text(String text) {
+      fields.put(key: "text", value: JsonValue.String(value: text))
+      break "text"
+    }
+    case MessageCompleted(Message message) {
+      fields.put(key: "id", value: JsonValue.String(value: message.id))
+      fields.put(key: "text", value: JsonValue.String(value: message.text))
+      fields.put(key: "refusal", value: toJsonValue(value: message.refusal))
+      break "message_completed"
+    }
+    case ToolCallReceived(ToolCall call) {
+      fields.put(key: "call", value: logToolCall(call: call))
+      break "tool_call_received"
+    }
+    case ToolStarted(ToolCall call) {
+      fields.put(key: "call", value: logToolCall(call: call))
+      break "tool_started"
+    }
+    case ToolCompleted(ToolResult result) {
+      fields.put(key: "call", value: logToolCall(call: result.call))
+      fields.put(key: "output", value: JsonValue.String(value: result.output))
+      break "tool_completed"
+    }
+    case ToolFailed(ToolFailure failure) {
+      fields.put(key: "call", value: logToolCall(call: failure.call))
+      fields.put(key: "error", value: JsonValue.String(value: failure.error.message))
+      break "tool_failed"
+    }
+    case ResponseCompleted(Response response) {
+      fields.put(key: "id", value: JsonValue.String(value: response.id))
+      fields.put(key: "output", value: JsonValue.Array(values: response.output))
+      fields.put(key: "text", value: JsonValue.String(value: response.text))
+      fields.put(key: "refusal", value: toJsonValue(value: response.refusal))
+      fields.put(key: "error", value: toJsonValue(value: response.errorMessage))
+      break "response_completed"
+    }
+    case Failed(Exception error) {
+      fields.put(key: "error", value: JsonValue.String(value: error.message))
+      break "failed"
+    }
+    case RunCompleted(Response response) {
+      fields.put(key: "id", value: JsonValue.String(value: response.id))
+      break "run_completed"
+    }
+  }
+  fields.put(key: "type", value: JsonValue.String(value: kind))
+  return JsonValue.Object(fields: fields)
+}
+
 @Document(description: "Public API declaration Agent.")
 public class Agent {
+  private List<PersistProvider> persist
+  private AgentSession? persistentSession
   private Client client
   private String? instructions
   private List<Function<?>> tools
@@ -100,8 +188,11 @@ public class Agent {
     @Document(description: "The tool scope factory.") Function<ToolScope()>? beginToolScope = null,
     @Document(description: "The context provider.") Function<String?()>? contextProvider = null,
     @Document(description: "The MCP providers.") List<McpToolProvider> mcp = [],
-    @Document(description: "Additional model HTTP headers forwarded to the protocol client.") HeaderMap headers = HeaderMap(values: [])
+    @Document(description: "Additional model HTTP headers forwarded to the protocol client.") HeaderMap headers = HeaderMap(values: []),
+    @Document(description: "Conversation log providers, empty by default.") List<PersistProvider> persist = []
   ) {
+    this.persist = persist
+    this.persistentSession = if persist.isEmpty() { null } else { AgentSession() }
     this.client = Client(apiKey: apiKey, model: model, endpoint: endpoint, headers: headers)
     this.instructions = instruction
     this.tools = tools
@@ -127,8 +218,11 @@ public class Agent {
     @Document(description: "The dynamic tool provider.") Function<List<Function<?>>()>? toolProvider = null,
     @Document(description: "The tool scope factory.") Function<ToolScope()>? beginToolScope = null,
     @Document(description: "The context provider.") Function<String?()>? contextProvider = null,
-    @Document(description: "The MCP providers.") List<McpToolProvider> mcp = []
+    @Document(description: "The MCP providers.") List<McpToolProvider> mcp = [],
+    @Document(description: "Conversation log providers, empty by default.") List<PersistProvider> persist = []
   ) {
+    this.persist = persist
+    this.persistentSession = if persist.isEmpty() { null } else { AgentSession() }
     this.client = Client(apiKey: apiKey, model: model, endpoint: endpoint, headers: headers)
     this.instructions = instruction
     this.tools = tools
@@ -185,29 +279,53 @@ public class Agent {
     @Document(description: "The run-start callback.") Function<Void(String)>? onRunStarted = null,
     @Document(description: "The run-complete callback.") Function<Void(Response)>? onRunCompleted = null,
     @Document(description: "The event callback.") Function<Void(GenerationEvent)>? onEvent = null,
-    @Document(description: "The session to use.") AgentSession session = AgentSession()) {
+    @Document(description: "The session to use.") AgentSession? session = null) {
+    AgentSession conversation = session ?? persistentSession ?? AgentSession()
     instructionSnapshot = null
     instructionSnapshotReady = false
-    var callbacks = GenerationCallbacks(onResponseStarted: onResponseStarted, onMessageStarted: onMessageStarted, onText: if onText == null { textCallback } else { onText }, onMessageCompleted: onMessageCompleted, onToolCallReceived: onToolCallReceived, onToolStarted: onToolStarted, onToolCompleted: onToolCompleted, onToolFailed: onToolFailed, onResponseCompleted: onResponseCompleted, onFailed: onFailed, onRunStarted: onRunStarted, onRunCompleted: onRunCompleted, onEvent: onEvent)
+    var callbacks = GenerationCallbacks(onResponseStarted: onResponseStarted, onMessageStarted: onMessageStarted, onText: if onText == null { textCallback } else { onText }, onMessageCompleted: onMessageCompleted, onToolCallReceived: onToolCallReceived, onToolStarted: onToolStarted, onToolCompleted: onToolCompleted, onToolFailed: onToolFailed, onResponseCompleted: onResponseCompleted, onFailed: onFailed, onRunStarted: onRunStarted, onRunCompleted: onRunCompleted, onEvent: (GenerationEvent event) {
+      if !persist.isEmpty() { this.record(session: conversation, event: generationRecord(event: event)) }
+      if onEvent != null { onEvent(event) }
+    })
     try {
       callbacks.emit(event: GenerationEvent.RunStarted(input: input))
-      session.addContext(text: input)
+      conversation.addContext(text: input)
       for Integer round : range(start: 0, end: maximumRounds) {
         if contextProvider != null {
           String? context = contextProvider()
-          if context != null { session.addContext(text: context) }
+          if context != null { conversation.addContext(text: context) }
         }
         var registry = catalog.refresh(tools: if toolProvider == null { tools } else { toolProvider() })
         String? rejection = catalog.rejection()
-        if rejection != null { session.addContext(text: rejection) }
+        if rejection != null { conversation.addContext(text: rejection) }
         List<ToolDefinition> definitions = registry.definitions()
         for McpToolProvider provider : mcpProviders {
           for ToolDefinition definition : provider.definitions() { definitions.add(definition) }
         }
-        var response = client.exchange(request: ResponseRequest(model: client.defaultModel(), input: ResponseInput.Items(values: session.items()),
-          instructions: this.instructionText(), tools: definitions, maximumOutputTokens: maximumOutputTokens), callbacks: callbacks)
+        var request = ResponseRequest(model: client.defaultModel(), input: ResponseInput.Items(values: conversation.items()),
+          instructions: this.instructionText(), tools: definitions, maximumOutputTokens: maximumOutputTokens)
+        if !persist.isEmpty() {
+          Map<String, JsonValue> fields = Map<>()
+          fields.put(key: "type", value: JsonValue.String(value: "request"))
+          fields.put(key: "model", value: JsonValue.String(value: request.model))
+          fields.put(key: "instructions", value: toJsonValue(value: request.instructions))
+          fields.put(key: "input", value: JsonValue.Array(values: conversation.items()))
+          List<JsonValue> toolItems = []
+          for ToolDefinition definition : definitions {
+            Map<String, JsonValue> tool = Map<>()
+            tool.put(key: "name", value: JsonValue.String(value: definition.name))
+            tool.put(key: "description", value: JsonValue.String(value: definition.description))
+            tool.put(key: "parameters", value: definition.parameters)
+            tool.put(key: "strict", value: JsonValue.Boolean(value: definition.strict))
+            toolItems.add(JsonValue.Object(fields: tool))
+          }
+          fields.put(key: "tools", value: JsonValue.Array(values: toolItems))
+          fields.put(key: "maximumOutputTokens", value: toJsonValue(value: maximumOutputTokens))
+          this.record(session: conversation, event: JsonValue.Object(fields: fields))
+        }
+        var response = client.exchange(request: request, callbacks: callbacks)
         if response.status != ResponseStatus.Completed || response.refusal != null || response.calls.isEmpty() {
-          for JsonValue item : response.output { session.append(item: item) }
+          for JsonValue item : response.output { conversation.append(item: item) }
           callbacks.emit(event: GenerationEvent.RunCompleted(response: response))
           return response
         }
@@ -218,7 +336,7 @@ public class Agent {
           }
           identifiers.put(key: call.callId, value: true)
         }
-        for JsonValue item : response.output { session.append(item: item) }
+        for JsonValue item : response.output { conversation.append(item: item) }
         ToolScope? scope = if beginToolScope == null { null } else { beginToolScope() }
         try {
           for ToolCall call : response.calls {
@@ -237,11 +355,11 @@ public class Agent {
             result.put(key: "type", value: JsonValue.String(value: "function_call_output"))
             result.put(key: "call_id", value: JsonValue.String(value: call.callId))
             result.put(key: "output", value: JsonValue.String(value: output))
-            session.append(item: JsonValue.Object(fields: result))
+            conversation.append(item: JsonValue.Object(fields: result))
           }
           if scope != null {
             String? feedback = scope.complete()
-            if feedback != null { session.addContext(text: feedback) }
+            if feedback != null { conversation.addContext(text: feedback) }
           }
         } finally { if scope != null { scope.close() } }
       }
@@ -250,6 +368,15 @@ public class Agent {
       callbacks.emit(event: GenerationEvent.Failed(error: error))
       throw error
     }
+  }
+
+  private Void record(AgentSession session, JsonValue event) {
+    String failures = ""
+    for PersistProvider provider : persist {
+      try { provider.append(sessionId: session.id(), event: event) }
+      catch Exception error { failures = failures + error.message + "\n" }
+    }
+    if failures != "" { throw OpenAiException(code: "AGENT-PERSIST", message: failures) }
   }
 
   private String? instructionText() {

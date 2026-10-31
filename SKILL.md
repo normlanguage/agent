@@ -1,6 +1,6 @@
 # agent Skill
 
-Use this skill to work with Norm module `agent` version 6. Use only declarations listed below.
+Use this skill to work with Norm module `agent` version 7. Use only declarations listed below.
 
 ## `agent`
 
@@ -13,6 +13,16 @@ Public API declaration AgentSession.
 ```norm
 class AgentSession
 ```
+
+#### `id`
+
+Returns the generated identifier shared by all persistence providers.
+
+```norm
+String id()
+```
+
+Returns: `String`
 
 #### `AgentSession`
 
@@ -111,7 +121,7 @@ class Agent
 Creates an Agent with tools, Skills, and model configuration.
 
 ```norm
-Agent(String apiKey, String model, String endpoint, String? instruction, List<Skill> skills, List<Function<?>> tools, Integer maximumRounds, Integer maximumOutputTokens, Function<List<Function<?>>()>? toolProvider, Function<ToolScope()>? beginToolScope, Function<String?()>? contextProvider, List<McpToolProvider> mcp, HeaderMap headers)
+Agent(String apiKey, String model, String endpoint, String? instruction, List<Skill> skills, List<Function<?>> tools, Integer maximumRounds, Integer maximumOutputTokens, Function<List<Function<?>>()>? toolProvider, Function<ToolScope()>? beginToolScope, Function<String?()>? contextProvider, List<McpToolProvider> mcp, HeaderMap headers, List<PersistProvider> persist)
 ```
 
 Parameters:
@@ -155,13 +165,16 @@ The MCP providers.
 - `headers`: `HeaderMap`
 Additional model HTTP headers forwarded to the protocol client.
 
+- `persist`: `List<PersistProvider>`
+Conversation log providers, empty by default.
+
 
 #### `Agent`
 
 Creates an Agent with tools, Skills, and model configuration.
 
 ```norm
-Agent(String apiKey, String model, String endpoint, Array<String> headers, String? instruction, List<Skill> skills, List<Function<?>> tools, Integer maximumRounds, Integer maximumOutputTokens, Function<List<Function<?>>()>? toolProvider, Function<ToolScope()>? beginToolScope, Function<String?()>? contextProvider, List<McpToolProvider> mcp)
+Agent(String apiKey, String model, String endpoint, Array<String> headers, String? instruction, List<Skill> skills, List<Function<?>> tools, Integer maximumRounds, Integer maximumOutputTokens, Function<List<Function<?>>()>? toolProvider, Function<ToolScope()>? beginToolScope, Function<String?()>? contextProvider, List<McpToolProvider> mcp, List<PersistProvider> persist)
 ```
 
 Parameters:
@@ -204,6 +217,9 @@ The context provider.
 
 - `mcp`: `List<McpToolProvider>`
 The MCP providers.
+
+- `persist`: `List<PersistProvider>`
+Conversation log providers, empty by default.
 
 
 #### `skill`
@@ -291,7 +307,7 @@ Returns: `Agent`
 Runs a multi-round model interaction and dispatches tools.
 
 ```norm
-Response chat(String input, Function<Void(String)>? onResponseStarted, Function<Void(String)>? onMessageStarted, Function<Void(String)>? onText, Function<Void(Message)>? onMessageCompleted, Function<Void(ToolCall)>? onToolCallReceived, Function<Void(ToolCall)>? onToolStarted, Function<Void(ToolResult)>? onToolCompleted, Function<Void(ToolFailure)>? onToolFailed, Function<Void(Response)>? onResponseCompleted, Function<Void(Exception)>? onFailed, Function<Void(String)>? onRunStarted, Function<Void(Response)>? onRunCompleted, Function<Void(GenerationEvent)>? onEvent, AgentSession session)
+Response chat(String input, Function<Void(String)>? onResponseStarted, Function<Void(String)>? onMessageStarted, Function<Void(String)>? onText, Function<Void(Message)>? onMessageCompleted, Function<Void(ToolCall)>? onToolCallReceived, Function<Void(ToolCall)>? onToolStarted, Function<Void(ToolResult)>? onToolCompleted, Function<Void(ToolFailure)>? onToolFailed, Function<Void(Response)>? onResponseCompleted, Function<Void(Exception)>? onFailed, Function<Void(String)>? onRunStarted, Function<Void(Response)>? onRunCompleted, Function<Void(GenerationEvent)>? onEvent, AgentSession? session)
 ```
 
 Parameters:
@@ -338,11 +354,154 @@ The run-complete callback.
 - `onEvent`: `Function<Void(GenerationEvent)>?`
 The event callback.
 
-- `session`: `AgentSession`
+- `session`: `AgentSession?`
 The session to use.
 
 
 Returns: `Response`
+
+## `agent.internal`
+
+Source: `internal/Connection.norm`
+
+### `Connection`
+
+```norm
+class Connection
+```
+
+#### `Connection`
+
+```norm
+Connection(__JarBindingToken token)
+```
+
+Parameters:
+
+- `token`: `__JarBindingToken`
+
+#### `close`
+
+```norm
+Void close()
+```
+
+Returns: `Void`
+
+## `agent.internal`
+
+Source: `internal/Database.norm`
+
+### `Database`
+
+```norm
+class Database
+```
+
+#### `Database`
+
+```norm
+Database(__JarBindingToken token)
+```
+
+Parameters:
+
+- `token`: `__JarBindingToken`
+
+#### `getConnection`
+
+```norm
+Connection? getConnection(String? arg0, String? arg1)
+```
+
+Parameters:
+
+- `arg0`: `String?`
+- `arg1`: `String?`
+
+Returns: `Connection?`
+
+#### `setUrl`
+
+```norm
+Void setUrl(String? arg0)
+```
+
+Parameters:
+
+- `arg0`: `String?`
+
+Returns: `Void`
+
+### `databaseNew`
+
+```norm
+Database databaseNew()
+```
+
+Returns: `Database`
+
+## `agent.internal`
+
+Source: `internal/Statement.norm`
+
+### `Statement`
+
+```norm
+class Statement extends JDBC3PreparedStatement implements Codes
+```
+
+#### `Statement`
+
+```norm
+Statement(__JarBindingToken token)
+```
+
+Parameters:
+
+- `token`: `__JarBindingToken`
+
+#### `close`
+
+```norm
+Void close()
+```
+
+Returns: `Void`
+
+#### `executeUpdate`
+
+```norm
+Integer executeUpdate()
+```
+
+Returns: `Integer`
+
+#### `setString`
+
+```norm
+Void setString(Integer arg0, String? arg1)
+```
+
+Parameters:
+
+- `arg0`: `Integer`
+- `arg1`: `String?`
+
+Returns: `Void`
+
+### `statementNew`
+
+```norm
+Statement statementNew(Connection? arg0, String? arg1)
+```
+
+Parameters:
+
+- `arg0`: `Connection?`
+- `arg1`: `String?`
+
+Returns: `Statement`
 
 ## `agent`
 
@@ -467,6 +626,229 @@ The tool call.
 
 
 Returns: `String`
+
+## `agent.org.sqlite.core`
+
+Source: `org/sqlite/core/Codes.norm`
+
+### `Codes`
+
+```norm
+interface Codes
+```
+
+## `agent.org.sqlite.core`
+
+Source: `org/sqlite/core/CorePreparedStatement.norm`
+
+### `CorePreparedStatement`
+
+```norm
+class CorePreparedStatement extends JDBC4Statement implements Codes
+```
+
+#### `CorePreparedStatement`
+
+```norm
+CorePreparedStatement(__JarBindingToken token)
+```
+
+Parameters:
+
+- `token`: `__JarBindingToken`
+
+## `agent.org.sqlite.core`
+
+Source: `org/sqlite/core/CoreStatement.norm`
+
+### `CoreStatement`
+
+```norm
+class CoreStatement implements Codes
+```
+
+#### `CoreStatement`
+
+```norm
+CoreStatement(__JarBindingToken token)
+```
+
+Parameters:
+
+- `token`: `__JarBindingToken`
+
+## `agent.org.sqlite.jdbc3`
+
+Source: `org/sqlite/jdbc3/JDBC3PreparedStatement.norm`
+
+### `JDBC3PreparedStatement`
+
+```norm
+class JDBC3PreparedStatement extends CorePreparedStatement implements Codes
+```
+
+#### `JDBC3PreparedStatement`
+
+```norm
+JDBC3PreparedStatement(__JarBindingToken token)
+```
+
+Parameters:
+
+- `token`: `__JarBindingToken`
+
+## `agent.org.sqlite.jdbc3`
+
+Source: `org/sqlite/jdbc3/JDBC3Statement.norm`
+
+### `JDBC3Statement`
+
+```norm
+class JDBC3Statement extends CoreStatement implements Codes
+```
+
+#### `JDBC3Statement`
+
+```norm
+JDBC3Statement(__JarBindingToken token)
+```
+
+Parameters:
+
+- `token`: `__JarBindingToken`
+
+## `agent.org.sqlite.jdbc4`
+
+Source: `org/sqlite/jdbc4/JDBC4Statement.norm`
+
+### `JDBC4Statement`
+
+```norm
+class JDBC4Statement extends JDBC3Statement implements Codes
+```
+
+#### `JDBC4Statement`
+
+```norm
+JDBC4Statement(__JarBindingToken token)
+```
+
+Parameters:
+
+- `token`: `__JarBindingToken`
+
+## `agent`
+
+Source: `persist.norm`
+
+### `PersistProvider`
+
+Receives ordered events for a conversation. The session identifier is generated by the library.
+
+```norm
+interface PersistProvider
+```
+
+#### `append`
+
+Appends one event.
+
+```norm
+Void append(String sessionId, JsonValue event)
+```
+
+Parameters:
+
+- `sessionId`: `String`
+The conversation identifier.
+
+- `event`: `JsonValue`
+The event object.
+
+
+Returns: `Void`
+
+### `JsonPersist`
+
+Appends UTF-8 JSON Lines to a generated file per session.
+
+```norm
+class JsonPersist implements PersistProvider
+```
+
+#### `JsonPersist`
+
+Creates a JSON Lines provider.
+
+```norm
+JsonPersist(String directory)
+```
+
+Parameters:
+
+- `directory`: `String`
+Output directory, default logs.
+
+
+#### `append`
+
+Appends and flushes one JSON event.
+
+```norm
+Void append(String sessionId, JsonValue event)
+```
+
+Parameters:
+
+- `sessionId`: `String`
+The conversation identifier.
+
+- `event`: `JsonValue`
+The event object.
+
+
+Returns: `Void`
+
+### `SqlitePersist`
+
+Records ordered events in a generated SQLite database per conversation.
+
+```norm
+class SqlitePersist implements PersistProvider
+```
+
+#### `SqlitePersist`
+
+Creates a SQLite provider.
+
+```norm
+SqlitePersist(String directory)
+```
+
+Parameters:
+
+- `directory`: `String`
+Output directory, default logs.
+
+
+#### `append`
+
+Commits one event in SQLite.
+
+```norm
+Void append(String sessionId, JsonValue event)
+```
+
+Parameters:
+
+- `sessionId`: `String`
+The conversation identifier.
+
+- `event`: `JsonValue`
+The event object.
+
+
+Returns: `Void`
 
 ## `agent`
 

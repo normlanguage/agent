@@ -11,12 +11,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: normlanguage/registry/.github/actions/setup-norm@90b4d247fa4f5f2b620924d2cbc0553e89843700
         with:
-          version: 0.27.23
+          version: 0.27.29
       - name: Generate and validate Skill
         shell: bash
         run: |
           set -euo pipefail
-          norm docs . --output build/api --skill SKILL.md --strict
-          test -s SKILL.md
+          norm docs . --output build/api --skill SKILL.md
+          python3 tests/check_api.py
+          git diff --exit-code -- SKILL.md
 
 
+      - name: Verify conversation logs
+        run: python3 tests/persist_conversation.py
