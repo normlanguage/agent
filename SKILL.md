@@ -1,6 +1,6 @@
 # agent Skill
 
-Use this skill to work with Norm module `agent` version 5. Use only declarations listed below.
+Use this skill to work with Norm module `agent` version 6. Use only declarations listed below.
 
 ## `agent`
 
