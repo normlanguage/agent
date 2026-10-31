@@ -787,7 +787,7 @@ JsonPersist(String directory)
 Parameters:
 
 - `directory`: `String`
-Output directory, default logs.
+Output directory, default session.
 
 
 #### `append`
@@ -828,7 +828,7 @@ SqlitePersist(String directory)
 Parameters:
 
 - `directory`: `String`
-Output directory, default logs.
+Output directory, default session.
 
 
 #### `append`

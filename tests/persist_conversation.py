@@ -38,14 +38,14 @@ import agent.SqlitePersist
 Void main() {{
   var agent = Agent(apiKey: "test-secret", model: "fixture",
     endpoint: "http://127.0.0.1:{model.server_port}/chat/completions",
-    persist: [JsonPersist(), SqlitePersist("logs")])
+    persist: [JsonPersist(), SqlitePersist()])
   agent.chat("第一轮")
   agent.chat("第二轮")
 }}
 """, encoding="utf-8")
     for _ in range(2):
         subprocess.run(["norm", "run", str(entry)], cwd=project, check=True, timeout=120)
-    files = list((project / "logs").glob("*.jsonl"))
+    files = list((project / "session").glob("*.jsonl"))
     assert len(files) == 2
     assert [m["content"] for m in requests[-1]["messages"]] == ["第一轮", "回复", "第二轮"]
     for path in files:
