@@ -9,27 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install Norm CLI
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p .norm-dist
-          gh release download --repo normlanguage/Norm --pattern '*linux-x64.tar.gz' --dir .norm-dist
-          tar -xzf .norm-dist/*.tar.gz -C .norm-dist
-          cli="$(find .norm-dist -type f -name norm -perm -111 | head -n 1)"
-          test -n "$cli"
-          echo "NORM_CLI=$PWD/$cli" >> "$GITHUB_ENV"
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - uses: normlanguage/registry/.github/actions/setup-norm@90b4d247fa4f5f2b620924d2cbc0553e89843700
+        with:
+          version: 0.27.23
       - name: Generate and validate Skill
         shell: bash
         run: |
           set -euo pipefail
-          if "$NORM_CLI" docs --help | grep -q -- '--skill'; then
-            "$NORM_CLI" docs . --output build/api --skill SKILL.md --strict
-          else
-            "$NORM_CLI" docs . --output build/api --strict
-          fi
+          norm docs . --output build/api --skill SKILL.md --strict
           test -s SKILL.md
 
 
