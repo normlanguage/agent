@@ -1,6 +1,6 @@
 # agent Skill
 
-Use this skill to work with Norm module `agent` version 2. Use only declarations listed below.
+Use this skill to work with Norm module `agent` version 4. Use only declarations listed below.
 
 ## `agent`
 
@@ -111,7 +111,7 @@ class Agent
 Creates an Agent with tools, Skills, and model configuration.
 
 ```norm
-Agent(String apiKey, String model, String endpoint, String? instruction, List<Skill> skills, List<Function<?>> tools, Integer maximumRounds, Integer maximumOutputTokens, Function<List<Function<?>>()>? toolProvider, Function<ToolScope()>? beginToolScope, Function<String?()>? contextProvider, List<McpToolProvider> mcp)
+Agent(String apiKey, String model, String endpoint, String? instruction, List<Skill> skills, List<Function<?>> tools, Integer maximumRounds, Integer maximumOutputTokens, Function<List<Function<?>>()>? toolProvider, Function<ToolScope()>? beginToolScope, Function<String?()>? contextProvider, List<McpToolProvider> mcp, HeaderMap headers)
 ```
 
 Parameters:
@@ -124,6 +124,59 @@ The model name.
 
 - `endpoint`: `String`
 The endpoint URL.
+
+- `instruction`: `String?`
+The instructions.
+
+- `skills`: `List<Skill>`
+The initial Skills.
+
+- `tools`: `List<Function<?>>`
+The initial tools.
+
+- `maximumRounds`: `Integer`
+The maximum rounds.
+
+- `maximumOutputTokens`: `Integer`
+The maximum output tokens.
+
+- `toolProvider`: `Function<List<Function<?>>()>?`
+The dynamic tool provider.
+
+- `beginToolScope`: `Function<ToolScope()>?`
+The tool scope factory.
+
+- `contextProvider`: `Function<String?()>?`
+The context provider.
+
+- `mcp`: `List<McpToolProvider>`
+The MCP providers.
+
+- `headers`: `HeaderMap`
+Additional model HTTP headers forwarded to the protocol client.
+
+
+#### `Agent`
+
+Creates an Agent with tools, Skills, and model configuration.
+
+```norm
+Agent(String apiKey, String model, String endpoint, Array<String> headers, String? instruction, List<Skill> skills, List<Function<?>> tools, Integer maximumRounds, Integer maximumOutputTokens, Function<List<Function<?>>()>? toolProvider, Function<ToolScope()>? beginToolScope, Function<String?()>? contextProvider, List<McpToolProvider> mcp)
+```
+
+Parameters:
+
+- `apiKey`: `String`
+The API key.
+
+- `model`: `String`
+The model name.
+
+- `endpoint`: `String`
+The endpoint URL.
+
+- `headers`: `Array<String>`
+Additional model HTTP headers forwarded to the protocol client.
 
 - `instruction`: `String?`
 The instructions.
@@ -593,5 +646,4 @@ The request timeout.
 
 
 Returns: `String`
-
 
