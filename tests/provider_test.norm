@@ -1,0 +1,12 @@
+package agent
+
+import std.testing.Test
+
+@Test
+Void acceptsPersistProviders() {
+  List<PersistProvider> named = [JsonPersist(directory: "logs"), SqlitePersist(directory: "logs")]
+  List<PersistProvider> positional = [JsonPersist("logs"), SqlitePersist("logs")]
+  List<PersistProvider> defaults = [JsonPersist(), SqlitePersist()]
+  Agent(apiKey: "fixture", model: "fixture", endpoint: "http://localhost", persist: defaults)
+  require(condition: named.size() == positional.size(), message: "Both providers available")
+}

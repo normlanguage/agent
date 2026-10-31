@@ -2,12 +2,6 @@ package agent
 
 import std.annotation.Document
 
-import std.filesystem.FileException
-import std.filesystem.FileFailure
-import std.filesystem.Path
-import std.filesystem.readText
-import std.filesystem.writeText
-import std.io.TextEncoding
 import std.json.JsonValue
 import std.json.parseJson
 import std.json.writeJson
@@ -31,28 +25,4 @@ public class JsonSessionStore implements SessionStore {
 
   @Document(description: "Public API declaration save.")
   public Void save(@Document(description: "The JSON state.") JsonValue value) { this.state = writeJson(value: value) }
-}
-
-@Document(description: "Stores one conversation in an atomically replaced UTF-8 JSON file. Use one writer per path.")
-public class JsonFileSessionStore implements SessionStore {
-  private String path
-
-  @Document(description: "Opens a session file, starting an empty conversation if it does not exist.") JsonFileSessionStore(@Document(description: "The session file path.") String path) {
-    this.path = path
-  }
-
-  @Document(description: "Reads the saved conversation.")
-  public JsonValue load() {
-    try {
-      return parseJson(value: readText(path: Path(value: path), encoding: TextEncoding.Utf8, maximumBytes: 2147483647))
-    } catch FileException error {
-      if error.reason == FileFailure.NotFound { return JsonValue.Array(values: []) }
-      throw error
-    }
-  }
-
-  @Document(description: "Atomically saves the complete conversation.")
-  public Void save(@Document(description: "The session state.") JsonValue value) {
-    writeText(path: path, text: writeJson(value: value))
-  }
 }

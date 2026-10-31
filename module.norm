@@ -1,9 +1,12 @@
 Module module() {
   return module(name: "agent", version: 7,
-    dependencies: [exportedDependency(repository: "github", name: "openai", version: 7)],
-    exports: ["agent", "skill", "session", "mcp"])
+    dependencies: [exportedDependency(repository: "github", name: "openai", version: 7), dependency(repository: "github", name: "commons.io", version: 4)],
+    exports: ["agent", "skill", "session", "mcp", "persist"],
+    binding: jarBinding(
+      target: mavenJar(group: "org.xerial", artifact: "sqlite-jdbc", version: "3.50.3.0", resolution: sha256("a3f53a2aa15ae9425a9e793bbe9c8e5288febeb4b65ef5c1a4e80d4c2045cf08")),
+      api: [
+        jarType(name: "org.sqlite.SQLiteDataSource", alias: "internal.Database", members: ["setUrl"], overloads: [jarOverload(name: "new", parameterTypes: []), jarOverload(name: "getConnection", parameterTypes: ["java.lang.String", "java.lang.String"])]),
+        jarType(name: "org.sqlite.SQLiteConnection", alias: "internal.Connection", members: ["close"]),
+        jarType(name: "org.sqlite.jdbc4.JDBC4PreparedStatement", alias: "internal.Statement", members: ["new", "setString", "close"], overloads: [jarOverload(name: "executeUpdate", parameterTypes: [])])
+      ]))
 }
-
-
-
-
