@@ -362,7 +362,7 @@ Returns: `Response`
 
 ## `agent.internal`
 
-Source: `agent/internal/Connection.norm`
+Source: `internal/Connection.norm`
 
 ### `Connection`
 
@@ -390,7 +390,7 @@ Returns: `Void`
 
 ## `agent.internal`
 
-Source: `agent/internal/Database.norm`
+Source: `internal/Database.norm`
 
 ### `Database`
 
@@ -443,7 +443,7 @@ Returns: `Database`
 
 ## `agent.internal`
 
-Source: `agent/internal/Statement.norm`
+Source: `internal/Statement.norm`
 
 ### `Statement`
 
@@ -502,116 +502,6 @@ Parameters:
 - `arg1`: `String?`
 
 Returns: `Statement`
-
-## `agent.org.sqlite.core`
-
-Source: `agent/org/sqlite/core/Codes.norm`
-
-### `Codes`
-
-```norm
-interface Codes
-```
-
-## `agent.org.sqlite.core`
-
-Source: `agent/org/sqlite/core/CorePreparedStatement.norm`
-
-### `CorePreparedStatement`
-
-```norm
-class CorePreparedStatement extends JDBC4Statement implements Codes
-```
-
-#### `CorePreparedStatement`
-
-```norm
-CorePreparedStatement(__JarBindingToken token)
-```
-
-Parameters:
-
-- `token`: `__JarBindingToken`
-
-## `agent.org.sqlite.core`
-
-Source: `agent/org/sqlite/core/CoreStatement.norm`
-
-### `CoreStatement`
-
-```norm
-class CoreStatement implements Codes
-```
-
-#### `CoreStatement`
-
-```norm
-CoreStatement(__JarBindingToken token)
-```
-
-Parameters:
-
-- `token`: `__JarBindingToken`
-
-## `agent.org.sqlite.jdbc3`
-
-Source: `agent/org/sqlite/jdbc3/JDBC3PreparedStatement.norm`
-
-### `JDBC3PreparedStatement`
-
-```norm
-class JDBC3PreparedStatement extends CorePreparedStatement implements Codes
-```
-
-#### `JDBC3PreparedStatement`
-
-```norm
-JDBC3PreparedStatement(__JarBindingToken token)
-```
-
-Parameters:
-
-- `token`: `__JarBindingToken`
-
-## `agent.org.sqlite.jdbc3`
-
-Source: `agent/org/sqlite/jdbc3/JDBC3Statement.norm`
-
-### `JDBC3Statement`
-
-```norm
-class JDBC3Statement extends CoreStatement implements Codes
-```
-
-#### `JDBC3Statement`
-
-```norm
-JDBC3Statement(__JarBindingToken token)
-```
-
-Parameters:
-
-- `token`: `__JarBindingToken`
-
-## `agent.org.sqlite.jdbc4`
-
-Source: `agent/org/sqlite/jdbc4/JDBC4Statement.norm`
-
-### `JDBC4Statement`
-
-```norm
-class JDBC4Statement extends JDBC3Statement implements Codes
-```
-
-#### `JDBC4Statement`
-
-```norm
-JDBC4Statement(__JarBindingToken token)
-```
-
-Parameters:
-
-- `token`: `__JarBindingToken`
 
 ## `agent`
 
@@ -736,6 +626,116 @@ The tool call.
 
 
 Returns: `String`
+
+## `agent.org.sqlite.core`
+
+Source: `org/sqlite/core/Codes.norm`
+
+### `Codes`
+
+```norm
+interface Codes
+```
+
+## `agent.org.sqlite.core`
+
+Source: `org/sqlite/core/CorePreparedStatement.norm`
+
+### `CorePreparedStatement`
+
+```norm
+class CorePreparedStatement extends JDBC4Statement implements Codes
+```
+
+#### `CorePreparedStatement`
+
+```norm
+CorePreparedStatement(__JarBindingToken token)
+```
+
+Parameters:
+
+- `token`: `__JarBindingToken`
+
+## `agent.org.sqlite.core`
+
+Source: `org/sqlite/core/CoreStatement.norm`
+
+### `CoreStatement`
+
+```norm
+class CoreStatement implements Codes
+```
+
+#### `CoreStatement`
+
+```norm
+CoreStatement(__JarBindingToken token)
+```
+
+Parameters:
+
+- `token`: `__JarBindingToken`
+
+## `agent.org.sqlite.jdbc3`
+
+Source: `org/sqlite/jdbc3/JDBC3PreparedStatement.norm`
+
+### `JDBC3PreparedStatement`
+
+```norm
+class JDBC3PreparedStatement extends CorePreparedStatement implements Codes
+```
+
+#### `JDBC3PreparedStatement`
+
+```norm
+JDBC3PreparedStatement(__JarBindingToken token)
+```
+
+Parameters:
+
+- `token`: `__JarBindingToken`
+
+## `agent.org.sqlite.jdbc3`
+
+Source: `org/sqlite/jdbc3/JDBC3Statement.norm`
+
+### `JDBC3Statement`
+
+```norm
+class JDBC3Statement extends CoreStatement implements Codes
+```
+
+#### `JDBC3Statement`
+
+```norm
+JDBC3Statement(__JarBindingToken token)
+```
+
+Parameters:
+
+- `token`: `__JarBindingToken`
+
+## `agent.org.sqlite.jdbc4`
+
+Source: `org/sqlite/jdbc4/JDBC4Statement.norm`
+
+### `JDBC4Statement`
+
+```norm
+class JDBC4Statement extends JDBC3Statement implements Codes
+```
+
+#### `JDBC4Statement`
+
+```norm
+JDBC4Statement(__JarBindingToken token)
+```
+
+Parameters:
+
+- `token`: `__JarBindingToken`
 
 ## `agent`
 

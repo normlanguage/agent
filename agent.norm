@@ -94,14 +94,41 @@ private JsonValue logToolCall(ToolCall call) {
 private JsonValue generationRecord(GenerationEvent event) {
   Map<String, JsonValue> fields = Map<>()
   String kind = switch event {
-    case RunStarted(String input) { fields.put(key: "input", value: JsonValue.String(value: input)) break "run_started" }
-    case ResponseStarted(String id) { fields.put(key: "id", value: JsonValue.String(value: id)) break "response_started" }
-    case MessageStarted(String id) { fields.put(key: "id", value: JsonValue.String(value: id)) break "message_started" }
-    case Text(String text) { fields.put(key: "text", value: JsonValue.String(value: text)) break "text" }
-    case MessageCompleted(Message message) { fields.put(key: "id", value: JsonValue.String(value: message.id)) fields.put(key: "text", value: JsonValue.String(value: message.text)) fields.put(key: "refusal", value: toJsonValue(value: message.refusal)) break "message_completed" }
-    case ToolCallReceived(ToolCall call) { fields.put(key: "call", value: logToolCall(call: call)) break "tool_call_received" }
-    case ToolStarted(ToolCall call) { fields.put(key: "call", value: logToolCall(call: call)) break "tool_started" }
-    case ToolCompleted(ToolResult result) { fields.put(key: "call", value: logToolCall(call: result.call)) fields.put(key: "output", value: JsonValue.String(value: result.output)) break "tool_completed" }
+    case RunStarted(String input) {
+      fields.put(key: "input", value: JsonValue.String(value: input))
+      break "run_started"
+    }
+    case ResponseStarted(String id) {
+      fields.put(key: "id", value: JsonValue.String(value: id))
+      break "response_started"
+    }
+    case MessageStarted(String id) {
+      fields.put(key: "id", value: JsonValue.String(value: id))
+      break "message_started"
+    }
+    case Text(String text) {
+      fields.put(key: "text", value: JsonValue.String(value: text))
+      break "text"
+    }
+    case MessageCompleted(Message message) {
+      fields.put(key: "id", value: JsonValue.String(value: message.id))
+      fields.put(key: "text", value: JsonValue.String(value: message.text))
+      fields.put(key: "refusal", value: toJsonValue(value: message.refusal))
+      break "message_completed"
+    }
+    case ToolCallReceived(ToolCall call) {
+      fields.put(key: "call", value: logToolCall(call: call))
+      break "tool_call_received"
+    }
+    case ToolStarted(ToolCall call) {
+      fields.put(key: "call", value: logToolCall(call: call))
+      break "tool_started"
+    }
+    case ToolCompleted(ToolResult result) {
+      fields.put(key: "call", value: logToolCall(call: result.call))
+      fields.put(key: "output", value: JsonValue.String(value: result.output))
+      break "tool_completed"
+    }
     case ToolFailed(ToolFailure failure) {
       fields.put(key: "call", value: logToolCall(call: failure.call))
       fields.put(key: "error", value: JsonValue.String(value: failure.error.message))
@@ -115,8 +142,14 @@ private JsonValue generationRecord(GenerationEvent event) {
       fields.put(key: "error", value: toJsonValue(value: response.errorMessage))
       break "response_completed"
     }
-    case Failed(Exception error) { fields.put(key: "error", value: JsonValue.String(value: error.message)) break "failed" }
-    case RunCompleted(Response response) { fields.put(key: "id", value: JsonValue.String(value: response.id)) break "run_completed" }
+    case Failed(Exception error) {
+      fields.put(key: "error", value: JsonValue.String(value: error.message))
+      break "failed"
+    }
+    case RunCompleted(Response response) {
+      fields.put(key: "id", value: JsonValue.String(value: response.id))
+      break "run_completed"
+    }
   }
   fields.put(key: "type", value: JsonValue.String(value: kind))
   return JsonValue.Object(fields: fields)
@@ -277,16 +310,16 @@ public class Agent {
           fields.put(key: "model", value: JsonValue.String(value: request.model))
           fields.put(key: "instructions", value: toJsonValue(value: request.instructions))
           fields.put(key: "input", value: JsonValue.Array(values: conversation.items()))
-          List<JsonValue> tools = []
+          List<JsonValue> toolItems = []
           for ToolDefinition definition : definitions {
             Map<String, JsonValue> tool = Map<>()
             tool.put(key: "name", value: JsonValue.String(value: definition.name))
             tool.put(key: "description", value: JsonValue.String(value: definition.description))
             tool.put(key: "parameters", value: definition.parameters)
             tool.put(key: "strict", value: JsonValue.Boolean(value: definition.strict))
-            tools.add(JsonValue.Object(fields: tool))
+            toolItems.add(JsonValue.Object(fields: tool))
           }
-          fields.put(key: "tools", value: JsonValue.Array(values: tools))
+          fields.put(key: "tools", value: JsonValue.Array(values: toolItems))
           fields.put(key: "maximumOutputTokens", value: toJsonValue(value: maximumOutputTokens))
           this.record(session: conversation, event: JsonValue.Object(fields: fields))
         }

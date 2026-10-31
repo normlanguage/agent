@@ -24,7 +24,9 @@ public interface PersistProvider {
 @Document(description: "Appends UTF-8 JSON Lines to a generated file per session.")
 public class JsonPersist implements PersistProvider {
   private String directory
-  @Document(description: "Creates a JSON Lines provider.") JsonPersist(@Document(description: "Output directory, default logs.") String directory = "logs") { this.directory = filenameUtilsConcat(arg0: workingDirectory().value, arg1: directory)!! }
+  @Document(description: "Creates a JSON Lines provider.") JsonPersist(@Document(description: "Output directory, default logs.") String directory = "logs") {
+    this.directory = filenameUtilsConcat(arg0: workingDirectory().value, arg1: directory)!!
+  }
 
   @Document(description: "Appends and flushes one JSON event.")
   public Void append(@Document(description: "The conversation identifier.") String sessionId, @Document(description: "The event object.") JsonValue event) {
@@ -38,7 +40,9 @@ public class JsonPersist implements PersistProvider {
 @Document(description: "Records ordered events in a generated SQLite database per conversation.")
 public class SqlitePersist implements PersistProvider {
   private String directory
-  @Document(description: "Creates a SQLite provider.") SqlitePersist(@Document(description: "Output directory, default logs.") String directory = "logs") { this.directory = filenameUtilsConcat(arg0: workingDirectory().value, arg1: directory)!! }
+  @Document(description: "Creates a SQLite provider.") SqlitePersist(@Document(description: "Output directory, default logs.") String directory = "logs") {
+    this.directory = filenameUtilsConcat(arg0: workingDirectory().value, arg1: directory)!!
+  }
 
   @Document(description: "Commits one event in SQLite.")
   public Void append(@Document(description: "The conversation identifier.") String sessionId, @Document(description: "The event object.") JsonValue event) {

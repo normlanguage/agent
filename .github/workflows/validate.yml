@@ -21,3 +21,5 @@ jobs:
           git diff --exit-code -- SKILL.md
 
 
+      - name: Verify conversation logs
+        run: python3 tests/persist_conversation.py
